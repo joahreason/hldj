@@ -111,10 +111,6 @@ async def song(ctx):
     # Display results
     await ctx.send(output)
 
-# Testing automation
-@bot.command()
-async def test(ctx):
-    await ctx.send ("test complte")
 
 # Returns who queued current song
 @bot.command(name="who")
