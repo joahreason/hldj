@@ -9,18 +9,33 @@
 import asyncio
 import os
 import discord
-from dotenv import load_dotenv
 from discord.ext import commands
 from discord import FFmpegPCMAudio
-from youtube_dl import YoutubeDL
+import requests
 from requests import get
+from dotenv import load_dotenv
+from youtube_dl import YoutubeDL
 
 load_dotenv()
 
 TOKEN = os.getenv('DISCORD_TOKEN')
-YDL_OPTIONS = {'format': 'bestaudio', 'noplaylist':'True', 'cookiefile':'cookies.txt'}#, 'username':os.getenv('YT_USER'), 'password':os.getenv('YT_PASS')}
-FFMPEG_OPTIONS = {'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5', 'options': '-vn'}
 MOTD = "nothing... !play [link]"
+
+YDL_OPTIONS = {'format': 'bestaudio',
+               'noplaylist': 'True',
+               'cookiefile': 'cookies.txt'}
+
+FFMPEG_OPTIONS = {'before_options':
+                  '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5',
+                  'options': '-vn'}
+
+SONG_ALIASES = ["currentsong",
+                "current",
+                "whatamilisteningto",
+                "songlist",
+                "playlist",
+                "showqueue",
+                "whatsnext"]
 
 intents = discord.Intents.default()
 intents.message_content = True
@@ -33,10 +48,12 @@ queue = []
 current_info = None
 ffmpeg = None
 
+
 # Start bot presence as the MOTD
 @bot.event
 async def on_ready():
     await bot.change_presence(activity=discord.Game(name=MOTD))
+
 
 # Start playing queue of songs
 async def play_queue(ctx):
@@ -49,21 +66,25 @@ async def play_queue(ctx):
 
         # Notify what song is being played and update presence
         await ctx.send(f"Playing **\"{current_info['title']}\"**")
-        await bot.change_presence(activity=discord.Game(name=current_info['title']))
+        await bot.change_presence(
+            activity=discord.Game(name=current_info['title'])
+        )
 
         # Grab file from URL and play
         ffmpeg = FFmpegPCMAudio(current_info['url'], **FFMPEG_OPTIONS)
         voice_client.play(ffmpeg)
 
         # Hold until song is finished
-        while voice_client and (voice_client.is_playing() or voice_client.is_paused()):
+        while voice_client and \
+                (voice_client.is_playing() or voice_client.is_paused()):
             await asyncio.sleep(1)
 
     # No more songs in queue, disconnect from voice
     await disconnect_voice()
 
+
 # Notify what song is currently playing or what is in queue
-@bot.command(name="song", aliases=["currentsong", "current", "whatamilisteningto", "songlist", "playlist", "showqueue", "whatsnext"])
+@bot.command(name="song", aliases=SONG_ALIASES)
 async def song(ctx):
     global current_info
     output = ""
@@ -72,7 +93,10 @@ async def song(ctx):
     match ctx.invoked_with:
         # All the commands to check the current song
         case "song" | "currentsong" | "current" | "whatamilisteningto":
-            output = f"Currently playing **\"{current_info['title']}\"**" if current_info else "Nothing currently playing"
+            if current_info:
+                output = f"Currently playing **\"{current_info['title']}\"**"
+            else:
+                output = "Nothing currently playing"
 
         # All the commands to check the queue of songs
         case "songlist" | "playlist" | "showqueue" | "whatsnext":
@@ -84,15 +108,23 @@ async def song(ctx):
             else:
                 output = "Nothing currently in queue"
 
-    # Display results   
+    # Display results
     await ctx.send(output)
 
+
+# Returns who queued current song
 @bot.command(name="who")
 async def who(ctx):
     global current_info
 
     if current_info:
-        await ctx.send(f"**\' {current_info['title']} \'** was requested by **{current_info['played by']}**")
+        title = current_info['title']
+        user = current_info['played by']
+
+        await ctx.send(
+            f"**\' {title} \'** was requested by **{user}**"
+        )
+
 
 # Connects to voice channel user who called command is currently
 # Grabs the URL to play given their !play link
@@ -116,10 +148,12 @@ async def play(ctx, *, arg):
             with YoutubeDL(YDL_OPTIONS) as ydl:
                 try:
                     get(arg)
-                except:
-                    info = ydl.extract_info(f"ytsearch:{arg}", download = False)['entries'][0]
+                except requests.exceptions.RequestException as e:
+                    print(e)
+                    s = f"ytsearch:{arg}"
+                    info = ydl.extract_info(s, download=False)['entries'][0]
                 else:
-                    info = ydl.extract_info(arg, download = False)
+                    info = ydl.extract_info(arg, download=False)
 
             # Grabs formatted URL from info
             URL = info['url']
@@ -141,6 +175,7 @@ async def play(ctx, *, arg):
         elif voice_client.is_paused() and arg:
             await unpause.invoke(ctx)
 
+
 # Skip to next song in queue
 @bot.command(name="skip", aliases=["next"])
 async def skip(ctx):
@@ -155,11 +190,12 @@ async def skip(ctx):
         voice_client.stop()
         await play_queue(ctx)
 
+
 # Stops playing song, clears queue, and disconnects from voice
 @bot.command(name="stop", aliases=["s", "end", "kick"])
 async def stop(ctx):
     global voice_client
-    
+
     # Checks that user is connected to voice
     if not is_user_connected(ctx):
         return
@@ -167,6 +203,7 @@ async def stop(ctx):
     # If bot is connected, disconnect from voice
     if voice_client:
         await disconnect_voice()
+
 
 # Pauses the current song
 # Unpauses if already paused
@@ -183,17 +220,20 @@ async def pause(ctx):
         # Pause song if one is playing and not paused
         if voice_client.is_playing() and not voice_client.is_paused():
             voice_client.pause()
-            await ctx.send(f"{ctx.message.author.name} paused **\"{current_info['title']}\"**")
-        
+            user = ctx.message.author.name
+            title = current_info['title']
+            await ctx.send(f"{user} paused **\"{title}\"**")
+
         # Unpause song if already paused
         elif voice_client.is_paused():
             await unpause.invoke(ctx)
+
 
 # Unpauses the current song
 @bot.command(name="unpause", aliases=["resume", "continue"])
 async def unpause(ctx):
     global voice_client
-    
+
     # Checks that user is connected to voice
     if not is_user_connected(ctx):
         return
@@ -202,7 +242,10 @@ async def unpause(ctx):
     if voice_client:
         if voice_client.is_paused():
             voice_client.resume()
-            await ctx.send(f"{ctx.message.author.name} unpaused **\"{current_info['title']}\"**")
+            user = ctx.message.author.name
+            title = current_info['title']
+            await ctx.send(f"{user} unpaused **\"{title}\"**")
+
 
 # Hands disconnect and cleanup
 async def disconnect_voice():
@@ -223,9 +266,11 @@ async def disconnect_voice():
     # Reverts presence to MOTD
     await bot.change_presence(activity=discord.Game(name=MOTD))
 
+
 # Checks if user is currently connected
 def is_user_connected(ctx):
-    return ctx.message.author.voice != None
+    return ctx.message.author.voice is not None
+
 
 # Starts bot
 bot.run(TOKEN)
