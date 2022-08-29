@@ -22,11 +22,8 @@ TOKEN = os.getenv('DISCORD_TOKEN')
 MOTD = "nothing... !play [link]"
 
 YDL_OPTIONS = {'format': 'bestaudio',
-               'retries': 4,
                'noplaylist': 'True',
-               'cookiefile': 'cookies.txt',
-               'match_filter': youtube_dl.utils.match_filter_func("is_live = false"),
-               'verbose': 'True'}
+               'cookiefile': 'cookies.txt'}
 
 FFMPEG_OPTIONS = {'before_options':
                   '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5',
@@ -151,7 +148,11 @@ async def play(ctx, *, arg):
                 try:
                     get(arg)
                 except:
-                    info = ydl.extract_info(f"ytsearch:{arg}", download=False)['entries'][0]
+                    try:
+                        info = ydl.extract_info(f"ytsearch:{arg}", download=False)['entries'][0]
+                    except:
+                        ydl.params['format'] = None
+                        info = ydl.extract_info(f"ytsearch:{arg}", download=False)['entries'][0]
                 else:
                     info = ydl.extract_info(arg, download=False)
 
