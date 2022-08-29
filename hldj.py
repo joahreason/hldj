@@ -18,7 +18,7 @@ from youtube_dl import YoutubeDL
 
 load_dotenv()
 
-TOKEN = os.getenv('DISCORD_TOKEN')
+TOKEN = os.environ['DISCORD_TOKEN']
 MOTD = "nothing... !play [link]"
 
 YDL_OPTIONS = {'format': 'bestaudio',

@@ -13,6 +13,10 @@ jobs:
           uses: azure/login@v1
           with:
             creds: ${{ secrets.AZURE_CREDENTIALS }}
+            
+        - name: 'Show environment variable'
+          env: 
+            DISCORD_TOKEN: ${{ secrets.DISCORD_TOKEN }}
         
         - name: 'Build and push image'
           uses: azure/docker-login@v1
