@@ -4,8 +4,6 @@ name: Linux_Container_Workflow
 jobs:
     build-and-deploy:
         runs-on: ubuntu-latest
-        env: 
-            DISCORD_TOKEN: ${{ secrets.DISCORD_TOKEN }}
         steps:
         # checkout the repo
         - name: 'Checkout GitHub Action'
@@ -36,4 +34,5 @@ jobs:
             registry-username: ${{ secrets.REGISTRY_USERNAME }}
             registry-password: ${{ secrets.REGISTRY_PASSWORD }}
             name: aci-hldj
+            environment-variables: DISCORD_TOKEN=${{ secrets.DISCORD_TOKEN }}
             location: 'east us'
