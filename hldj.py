@@ -154,7 +154,11 @@ async def play(ctx, *, arg):
                         ydl.params['format'] = None
                         info = ydl.extract_info(f"ytsearch:{arg}", download=False)['entries'][0]
                 else:
-                    info = ydl.extract_info(arg, download=False)
+                    try:
+                        info = ydl.extract_info(arg, download=False)
+                    except:
+                        ydl.params['format'] = None
+                        info = ydl.extract_info(arg, download=False)
 
             # Grabs formatted URL from info
             URL = info['url']
