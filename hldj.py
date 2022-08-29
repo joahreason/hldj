@@ -9,9 +9,9 @@
 import asyncio
 import os
 import discord
+import youtube_dl
 from discord.ext import commands
 from discord import FFmpegPCMAudio
-import requests
 from requests import get
 from dotenv import load_dotenv
 from youtube_dl import YoutubeDL
@@ -22,8 +22,11 @@ TOKEN = os.getenv('DISCORD_TOKEN')
 MOTD = "nothing... !play [link]"
 
 YDL_OPTIONS = {'format': 'bestaudio',
+               'retries': 4,
                'noplaylist': 'True',
-               'cookiefile': 'cookies.txt'}
+               'cookiefile': 'cookies.txt',
+               'match_filter': youtube_dl.utils.match_filter_func("is_live = false"),
+               'verbose': 'True'}
 
 FFMPEG_OPTIONS = {'before_options':
                   '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5',
@@ -111,7 +114,6 @@ async def song(ctx):
     # Display results
     await ctx.send(output)
 
-
 # Returns who queued current song
 @bot.command(name="who")
 async def who(ctx):
@@ -148,10 +150,8 @@ async def play(ctx, *, arg):
             with YoutubeDL(YDL_OPTIONS) as ydl:
                 try:
                     get(arg)
-                except requests.exceptions.RequestException as e:
-                    print(e)
-                    s = f"ytsearch:{arg}"
-                    info = ydl.extract_info(s, download=False)['entries'][0]
+                except:
+                    info = ydl.extract_info(f"ytsearch:{arg}", download=False)['entries'][0]
                 else:
                     info = ydl.extract_info(arg, download=False)
 
