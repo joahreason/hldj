@@ -9,12 +9,12 @@
 import asyncio
 import os
 import discord
-import youtube_dl
+import yt_dlp
 from discord.ext import commands
 from discord import FFmpegPCMAudio
 from requests import get
 from dotenv import load_dotenv
-from youtube_dl import YoutubeDL
+from yt_dlp import YoutubeDL
 
 load_dotenv()
 
