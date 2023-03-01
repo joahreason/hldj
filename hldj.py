@@ -63,7 +63,7 @@ async def play_queue(ctx):
         # Grab next song in queue
         current_info = queue.pop(0)
 
-        await ctx.send(embed=get_embed("Playing {current_info['title']}.", current_info))
+        await ctx.send(embed=get_embed(f"Playing {current_info['title']}.", current_info))
         await bot.change_presence(
             activity=discord.Game(name=current_info['title'])
         )
@@ -120,7 +120,7 @@ async def who(ctx):
         user = current_info['played by']
 
         await ctx.send(
-            f"{get_embed(current_info)} was requested by **{user}**"
+            f"{current_info['title']} was requested by **{user}**"
         )
 
 
