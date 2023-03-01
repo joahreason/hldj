@@ -63,7 +63,7 @@ async def play_queue(ctx):
         # Grab next song in queue
         current_info = queue.pop(0)
 
-        await ctx.send(f"Playing {get_embed(current_info)}")
+        await ctx.send(embed=get_embed("Playing {current_info['title']}.", current_info))
         await bot.change_presence(
             activity=discord.Game(name=current_info['title'])
         )
@@ -84,6 +84,7 @@ async def play_queue(ctx):
 # Notify what song is currently playing or what is in queue
 @bot.command(name="song", aliases=SONG_ALIASES)
 async def song(ctx):
+    await bot.delete_message(ctx.message)
     global current_info
     output = ""
 
@@ -92,7 +93,7 @@ async def song(ctx):
         # All the commands to check the current song
         case "song" | "currentsong" | "current" | "whatamilisteningto":
             if current_info:
-                output = f"Currently playing {get_embed(current_info)}"
+                output = f"Currently playing {current_info['title']}"
             else:
                 output = "Nothing currently playing"
 
@@ -102,7 +103,7 @@ async def song(ctx):
                 output = "__Song Queue:__\n"
                 for i in range(len(queue)):
                     info = queue[i]
-                    output += f"\n**{i+1}.** {get_embed(info)}"
+                    output += f"\n**{i+1}.** {info['title']}"
             else:
                 output = "Nothing currently in queue"
 
@@ -112,6 +113,7 @@ async def song(ctx):
 # Returns who queued current song
 @bot.command(name="who")
 async def who(ctx):
+    await bot.delete_message(ctx.message)
     global current_info
 
     if current_info:
@@ -128,6 +130,7 @@ async def who(ctx):
 # Unpauses if not given a link and currently paused
 @bot.command(name="play", aliases=["queue", "q"])
 async def play(ctx, *, arg):
+    await bot.delete_message(ctx.message)
     global voice_client
 
     # Grabs user and voice channel
@@ -168,7 +171,7 @@ async def play(ctx, *, arg):
             queue.append(info)
 
             if voice_client.is_playing():
-                await ctx.send(f"Queuing up {get_embed(info)}")
+                await ctx.send(embed=get_embed(f"Queuing up {info['title']}.", info))
 
         # Start queue if it isn't currently playing
         if not voice_client.is_playing():
@@ -223,7 +226,6 @@ async def pause(ctx):
         if voice_client.is_playing() and not voice_client.is_paused():
             voice_client.pause()
             user = ctx.message.author.name
-            await ctx.send(f"{user} paused {get_embed(current_info)}")
 
         # Unpause song if already paused
         elif voice_client.is_paused():
@@ -244,7 +246,6 @@ async def unpause(ctx):
         if voice_client.is_paused():
             voice_client.resume()
             user = ctx.message.author.name
-            await ctx.send(f"{user} unpaused {get_embed(current_info)}")
 
 
 # Hands disconnect and cleanup
@@ -272,8 +273,9 @@ def is_user_connected(ctx):
     return ctx.message.author.voice is not None
 
 # Returns embed for given info
-def get_embed(info):
+def get_embed(msg, info):
     embed = discord.Embed(  title = info['title'],
+                            description = msg,
                             url = info['url'])
     return embed
 
