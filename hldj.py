@@ -84,7 +84,7 @@ async def play_queue(ctx):
 # Notify what song is currently playing or what is in queue
 @bot.command(name="song", aliases=SONG_ALIASES)
 async def song(ctx):
-    await bot.delete_message(ctx.message)
+    await ctx.message.delete()
     global current_info
     output = ""
 
@@ -113,7 +113,7 @@ async def song(ctx):
 # Returns who queued current song
 @bot.command(name="who")
 async def who(ctx):
-    await bot.delete_message(ctx.message)
+    await ctx.message.delete()
     global current_info
 
     if current_info:
@@ -130,7 +130,7 @@ async def who(ctx):
 # Unpauses if not given a link and currently paused
 @bot.command(name="play", aliases=["queue", "q"])
 async def play(ctx, *, arg):
-    await bot.delete_message(ctx.message)
+    await ctx.message.delete()
     global voice_client
 
     # Grabs user and voice channel
