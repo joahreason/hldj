@@ -22,8 +22,7 @@ TOKEN = os.environ['DISCORD_TOKEN']
 MOTD = "nothing... !play [link]"
 
 YDL_OPTIONS = {'format': 'bestaudio',
-               'noplaylist': 'True',
-               'cookiefile': 'cookies.txt'}
+               'noplaylist': 'True'}
 
 FFMPEG_OPTIONS = {'before_options':
                   '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5',
