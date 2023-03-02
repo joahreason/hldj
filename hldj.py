@@ -151,13 +151,13 @@ async def play(ctx, *, arg):
                     try:
                         info = ydl.extract_info(f"ytsearch:{arg}", download=False)['entries'][0]
                     except:
-                        ydl.params['format'] = None
+                        ydl.params.update({'format': 'b*'})
                         info = ydl.extract_info(f"ytsearch:{arg}", download=False)['entries'][0]
                 else:
                     try:
                         info = ydl.extract_info(arg, download=False)
                     except:
-                        ydl.params['format'] = None
+                        ydl.params.update({'format': 'b*'})
                         info = ydl.extract_info(arg, download=False)
 
             # Grabs formatted URL from info
@@ -165,14 +165,11 @@ async def play(ctx, *, arg):
             
             # Gets thumbnail URL
             thumbnail = f"https://img.youtube.com/vi/{info['id']}/hqdefault.jpg"
-            print(thumbnail)
             try:
-                print("get thumbnail")
                 get(thumbnail)
             except:
                 print(f"Failed to find thumbnail at {thumbnail}")
             else:
-                print("got thumbnail")
                 info.update({"thumbnail": thumbnail})
 
             # Adds entry to track who requested the song
@@ -288,11 +285,10 @@ def is_user_connected(ctx):
 def get_embed(msg, info):
     embed = discord.Embed(  title = info['title'],
                             description = f"*Requested by **{info['played by']}.***",
-                            url = info['url'])
+                            url = info['webpage_url'])
     
     embed.set_author(name = msg)
 
-    print(info['thumbnail'])
     if info['thumbnail']:
         embed.set_thumbnail(url = info['thumbnail'])
 
