@@ -63,7 +63,7 @@ async def play_queue(ctx):
         # Grab next song in queue
         current_info = queue.pop(0)
 
-        await ctx.send(embed=get_embed(f"Playing {current_info['title']}.", current_info))
+        await ctx.send(embed=get_embed(f"Now playing:", current_info))
         await bot.change_presence(
             activity=discord.Game(name=current_info['title'])
         )
@@ -162,6 +162,18 @@ async def play(ctx, *, arg):
 
             # Grabs formatted URL from info
             URL = info['url']
+            
+            # Gets thumbnail URL
+            thumbnail = f"https://img.youtube.com/vi/{info['id']}/hqdefault.jpg"
+            print(thumbnail)
+            try:
+                print("get thumbnail")
+                get(thumbnail)
+            except:
+                print(f"Failed to find thumbnail at {thumbnail}")
+            else:
+                print("got thumbnail")
+                info.update({"thumbnail": thumbnail})
 
             # Adds entry to track who requested the song
             info.update({"played by": user})
@@ -171,7 +183,7 @@ async def play(ctx, *, arg):
             queue.append(info)
 
             if voice_client.is_playing():
-                await ctx.send(embed=get_embed(f"Queuing up {info['title']}.", info))
+                await ctx.send(embed=get_embed(f"Queuing up:", info))
 
         # Start queue if it isn't currently playing
         if not voice_client.is_playing():
@@ -275,8 +287,15 @@ def is_user_connected(ctx):
 # Returns embed for given info
 def get_embed(msg, info):
     embed = discord.Embed(  title = info['title'],
-                            description = msg,
+                            description = f"*Requested by **{info['played by']}.***",
                             url = info['url'])
+    
+    embed.set_author(name = msg)
+
+    print(info['thumbnail'])
+    if info['thumbnail']:
+        embed.set_thumbnail(url = info['thumbnail'])
+
     return embed
 
 # Starts bot
