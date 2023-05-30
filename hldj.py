@@ -9,7 +9,6 @@
 import asyncio
 import os
 import discord
-import yt_dlp
 from discord.ext import commands
 from discord import FFmpegPCMAudio
 from requests import get
@@ -84,7 +83,6 @@ async def play_queue(ctx):
 # Notify what song is currently playing or what is in queue
 @bot.command(name="song", aliases=SONG_ALIASES)
 async def song(ctx):
-    await ctx.message.delete()
     global current_info
     output = ""
 
@@ -113,7 +111,6 @@ async def song(ctx):
 # Returns who queued current song
 @bot.command(name="who")
 async def who(ctx):
-    await ctx.message.delete()
     global current_info
 
     if current_info:
@@ -130,9 +127,8 @@ async def who(ctx):
 # Unpauses if not given a link and currently paused
 @bot.command(name="play", aliases=["queue", "q"])
 async def play(ctx, *, arg):
-    await ctx.message.delete()
     global voice_client
-
+    
     # Grabs user and voice channel
     user = ctx.message.author
     voice_channel = user.voice.channel
@@ -260,7 +256,7 @@ async def unpause(ctx):
 # Hands disconnect and cleanup
 async def disconnect_voice():
     global voice_client, current_info, queue
-
+    print("disconnect")
     # Cleanly kills current FFmpeg process
     FFmpegPCMAudio._kill_process(ffmpeg)
 
